@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-07-13T22:17:20Z'
+  date: '2021-07-13T23:28:07Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -367,7 +367,7 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'CCU3 Device Gatherer'
+                  value: 'CCU3 Device Gatherer {#CCU3.NAME} ({#CCU3.ISEID})'
               trigger_prototypes:
                 -
                   uuid: ca04f14365234cbfb9a8df2bb3cbf79c
@@ -435,6 +435,16 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: e711aaf202d249fd866d3ea46515dc49
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},degradedchamber])=1'
+                  name: 'Chamber status of "{#CCU3.NAME}" not ok'
+                  priority: AVERAGE
+                -
+                  uuid: eb6804247c4d40659273d29539d61b42
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},degradedchamber])=2'
+                  name: 'Chamber status of "{#CCU3.NAME}" unkown'
             -
               uuid: ac9ec56a9389482b84c0f3e7e07397ac
               name: 'Error code of "{#CCU3.NAME}"'
@@ -453,6 +463,11 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: a725b230b5454825adf404daed760dde
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},errorcode])<>0'
+                  name: 'Problem detected on "{#CCU3.NAME}"'
             -
               uuid: 5047ed5f405c4447bfda7b5b93cafda9
               name: 'Battery status of "{#CCU3.NAME}"'
@@ -485,13 +500,25 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 3eb4240511ac4098ae03024152cb2a66
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},lowbat])=1'
+                  name: 'Battery status of "{#CCU3.NAME}" not ok'
+                  priority: WARNING
+                -
+                  uuid: ea85d0654e12493e90c1dfd93a062b30
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},lowbat])=2'
+                  name: 'Battery status of "{#CCU3.NAME}" unkown'
             -
               uuid: ca072fc311f34152a8bc4ab0d6b90c3d
-              name: 'Some detector alarm status of "{#CCU3.NAME}"'
+              name: 'Smoke detector alarm status of "{#CCU3.NAME}"'
               type: DEPENDENT
               key: 'ccu3.device.swsd.[{#CCU3.ISEID},smokedetectoralarmstatus]'
               delay: '0'
               trends: '0'
+              valuemap:
+                name: 'Simple status'
               preprocessing:
                 -
                   type: JSONPATH
@@ -503,13 +530,25 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 90d5bf928717480f9f9826f55d00ca20
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},smokedetectoralarmstatus])=1'
+                  name: 'Alarm of "{#CCU3.NAME}" active'
+                  priority: DISASTER
+                -
+                  uuid: 9c08aef605a6450294d3b61570b911f8
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},smokedetectoralarmstatus])=2'
+                  name: 'Alarmstate of "{#CCU3.NAME}" unkown'
             -
               uuid: d04c9af250be44f38145a6e7eff9d643
-              name: 'Some detector test result of "{#CCU3.NAME}"'
+              name: 'Smoke detector test result of "{#CCU3.NAME}"'
               type: DEPENDENT
               key: 'ccu3.device.swsd.[{#CCU3.ISEID},smokedetectortestresult]'
               delay: '0'
               trends: '0'
+              valuemap:
+                name: 'Simple status'
               preprocessing:
                 -
                   type: JSONPATH
@@ -521,6 +560,12 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: f88354c4e4e745539a70547ffdcfc6a6
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},smokedetectortestresult])<>0'
+                  name: 'Test result of "{#CCU3.NAME}" not ok'
+                  priority: AVERAGE
             -
               uuid: a8b72ec5f14d405a91598cfcdf300da3
               name: 'Reachability of "{#CCU3.NAME}"'
@@ -552,6 +597,16 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 98e3ee92276a409babacb2b42ec0df85
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},unreach])=2'
+                  name: 'Reachability of "{#CCU3.NAME}" unkown'
+                -
+                  uuid: 366ec722325546e2abbab4c0576efca4
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swsd.[{#CCU3.ISEID},unreach])=1'
+                  name: 'Sensor "{#CCU3.NAME}" unreachable'
+                  priority: AVERAGE
             -
               uuid: 7c69d163358e4de5b5112e2cd575c56e
               name: 'Gatherer "{#CCU3.NAME}"'
@@ -575,7 +630,7 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'CCU3 Device Gatherer'
+                  value: 'CCU3 Device Gatherer {#CCU3.NAME} ({#CCU3.ISEID})'
               trigger_prototypes:
                 -
                   uuid: 59a5d74547eb4c66b628c64386c6b523
