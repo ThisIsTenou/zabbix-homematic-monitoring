@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-07-13T22:08:06Z'
+  date: '2021-07-13T22:17:20Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -26,7 +26,7 @@ zabbix_export:
           uuid: ffc3c74752ca4e52a112526aa507ee81
           name: 'CCU3 Device Gatherer'
           type: EXTERNAL
-          key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+          key: 'ccu3-gatherer.sh[{HOST.CONN}]'
           delay: 1h
           history: '0'
           trends: '0'
@@ -389,7 +389,7 @@ zabbix_export:
               expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},moisturedetected])=2 or last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},waterleveldetected])=2'
               name: 'Water/Moisture detection status of "{#CCU3.NAME}" unknown'
           master_item:
-            key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+            key: 'ccu3-gatherer.sh[{HOST.CONN}]'
         -
           uuid: d2753416641447298689176e0af80471
           name: 'CCU3 SWSD Discovery'
@@ -583,7 +583,7 @@ zabbix_export:
                   name: 'No data received from "{#CCU3.NAME}" for over 3m'
                   priority: WARNING
           master_item:
-            key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+            key: 'ccu3-gatherer.sh[{HOST.CONN}]'
       valuemaps:
         -
           uuid: a267fefcca5c433cbc6cb1e588da18b2
