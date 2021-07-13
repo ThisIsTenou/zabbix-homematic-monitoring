@@ -1,7 +1,7 @@
 Currently supported devices:
 ------
 * Homematic IP Water sensor (HmIP-SWD)
-* Homematic IP Smoke detector (HmIP-SWSD) (in developmemt)
+* Homematic IP Smoke detector (HmIP-SWSD)
 
 Requirements
 ------
