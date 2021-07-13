@@ -8,6 +8,7 @@ Requirements
 * Bash 4.x or higher
 * Zabbix server 5.4 or higher
 * Availability of `printf` & `readarray`-commands
+* [XML-API](https://www.homematic-inside.de/software/xml-api) AddOn  installed on the CCU3
 
 Installation
 ------
