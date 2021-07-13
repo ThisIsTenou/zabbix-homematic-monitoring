@@ -1,0 +1,600 @@
+zabbix_export:
+  version: '5.4'
+  date: '2021-07-13T22:08:06Z'
+  groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+    -
+      uuid: a086b5c471b648ed844efc1d04c2a66d
+      name: Templates/IOT
+  templates:
+    -
+      uuid: 7f37a50219634aad8108c520f6a6754e
+      template: template_homematic-ccu3-values
+      name: 'Homematic IP CCU3'
+      description: |
+        Please visit the project's github page for details:
+        https://github.com/ThisIsTenou/zabbix-homematic-monitoring
+      groups:
+        -
+          name: Templates
+        -
+          name: Templates/IOT
+      items:
+        -
+          uuid: ffc3c74752ca4e52a112526aa507ee81
+          name: 'CCU3 Device Gatherer'
+          type: EXTERNAL
+          key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+          delay: 1h
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+      discovery_rules:
+        -
+          uuid: 1b45f83c635f4c27a7188a0e47a99d33
+          name: 'CCU3 SWD Discovery'
+          type: DEPENDENT
+          key: ccu3.discovery.devices.swd
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#CCU3.DEVICETYPE}'
+                value: HmIP-SWD
+                formulaid: A
+          lifetime: 7d
+          item_prototypes:
+            -
+              uuid: 76277c1a91e44aee85bb0978cd8ee7ea
+              name: 'Alarmstate of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},alarmstate]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[0]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: a7b31ce1ff334881ac0ff68f11535054
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},alarmstate])=1'
+                  name: 'Alarm of "{#CCU3.NAME}" active'
+                  priority: AVERAGE
+                -
+                  uuid: e4fb2ec5b4684b85873913ff129f222a
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},alarmstate])=2'
+                  name: 'Alarmstate of "{#CCU3.NAME}" unkown'
+            -
+              uuid: d0fce2a819b1430198daf4a6da7cb49d
+              name: 'Error code of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},errorcode]'
+              delay: '0'
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[2]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: f31b667ccd5b4ce09f50a303b1fbaa57
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},errorcode])<>0'
+                  name: 'Problem detected on "{#CCU3.NAME}"'
+            -
+              uuid: 1f251e3dbecd44909fa548c05813af23
+              name: 'Positioning status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},errornonflatpositioning]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[3]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: a87a306628524b94a66cf1c68b5c890b
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},errornonflatpositioning])=1'
+                  recovery_mode: NONE
+                  name: '"{#CCU3.NAME}" has been moved'
+                  priority: WARNING
+                  manual_close: 'YES'
+                -
+                  uuid: 2ebddf135a2149d4b014fde049af5758
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},errornonflatpositioning])=2'
+                  name: 'Positioning status of "{#CCU3.NAME}" is unknown'
+            -
+              uuid: b3dac049cb704e7286ab80263303cb17
+              name: 'Battery status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},lowbat]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[4]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: e48119567e3a480a942154ecbad5db22
+              name: 'Moisture status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},moisturedetected]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[1]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: c4b11f08717147dd8414396ed24eefaa
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},moisturedetected])=1'
+                  name: 'Moisture detected on "{#CCU3.NAME}"'
+                  priority: HIGH
+            -
+              uuid: 78f1d8b30f0a432b9ebef4bfb7c8c7f7
+              name: 'Operating voltage status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},operatingvoltagestatus]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[6]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 48f563bab2054afb80c088a9a205d7e4
+              name: 'Operating voltage of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},operatingvoltage]'
+              delay: '0'
+              value_type: FLOAT
+              units: V
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[5]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 38743a301cf04996b9cd0be922054c56
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},operatingvoltage])<=2.2'
+                  name: 'Low battery on "{#CCU3.NAME}"'
+                  priority: WARNING
+            -
+              uuid: a5bd28ee11aa4b83ac5c37a7e8735faa
+              name: 'Reachability of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},unreach]'
+              delay: '0'
+              history: 14d
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[9]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 14ca8b52f5d6452e87424a640283d99a
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},unreach])=2'
+                  name: 'Reachability of "{#CCU3.NAME}" unkown'
+                -
+                  uuid: 3e5c83952d714305877aed20dd5843f4
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},unreach])=1'
+                  name: 'Sensor "{#CCU3.NAME}" unreachable'
+                  priority: AVERAGE
+            -
+              uuid: 86a8e69cfce44faf9b0870cbb3ae3793
+              name: 'Waterlevel status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swd.[{#CCU3.ISEID},waterleveldetected]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[2]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: bcb4315f3c54499d9383373e3f2edcf0
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},waterleveldetected])=1'
+                  name: 'Water detected on "{#CCU3.NAME}"'
+                  priority: DISASTER
+            -
+              uuid: 3425991bb2d1404bb7330a7eb7ffb1ed
+              name: 'Gatherer "{#CCU3.NAME}"'
+              type: HTTP_AGENT
+              key: 'ccu3.gatherer.device.swd.[{#CCU3.ISEID}]'
+              delay: 15s
+              history: 14d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: XML_TO_JSON
+                  parameters:
+                    - ''
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.state.device
+              timeout: 5s
+              url: 'https://192.168.20.202/addons/xmlapi/state.cgi?device_id={#CCU3.ISEID}'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device Gatherer'
+              trigger_prototypes:
+                -
+                  uuid: ca04f14365234cbfb9a8df2bb3cbf79c
+                  expression: 'nodata(/template_homematic-ccu3-values/ccu3.gatherer.device.swd.[{#CCU3.ISEID}],180,"strict")=1'
+                  name: 'No data received from "{#CCU3.NAME}" for over 3m'
+                  priority: WARNING
+          trigger_prototypes:
+            -
+              uuid: 75177ca2bb96420d8f0153d46877328d
+              expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},lowbat])=1 or last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},operatingvoltagestatus])=1'
+              name: 'Battery status of "{#CCU3.NAME}" not ok'
+              priority: WARNING
+            -
+              uuid: bed6e4f912174969a06960fe811bee04
+              expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},lowbat])=2 or last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},operatingvoltagestatus])=2'
+              name: 'Battery status of "{#CCU3.NAME}" unkown'
+            -
+              uuid: 6a3f48d5e6c7486c98ad25fc104f7c5a
+              expression: 'last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},moisturedetected])=2 or last(/template_homematic-ccu3-values/ccu3.device.swd.[{#CCU3.ISEID},waterleveldetected])=2'
+              name: 'Water/Moisture detection status of "{#CCU3.NAME}" unknown'
+          master_item:
+            key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+        -
+          uuid: d2753416641447298689176e0af80471
+          name: 'CCU3 SWSD Discovery'
+          type: DEPENDENT
+          key: ccu3.discovery.devices.swsd
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#CCU3.DEVICETYPE}'
+                value: HmIP-SWSD
+                formulaid: A
+          lifetime: 7d
+          item_prototypes:
+            -
+              uuid: efb775a296064049a113b812c5fcfee5
+              name: 'Chamber status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},degradedchamber]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[1]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: ac9ec56a9389482b84c0f3e7e07397ac
+              name: 'Error code of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},errorcode]'
+              delay: '0'
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[0]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 5047ed5f405c4447bfda7b5b93cafda9
+              name: 'Battery status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},lowbat]'
+              delay: '0'
+              history: 14d
+              trends: '0'
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[2]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: ca072fc311f34152a8bc4ab0d6b90c3d
+              name: 'Some detector alarm status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},smokedetectoralarmstatus]'
+              delay: '0'
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[2]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: d04c9af250be44f38145a6e7eff9d643
+              name: 'Some detector test result of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},smokedetectortestresult]'
+              delay: '0'
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[4]["@value"]'
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: a8b72ec5f14d405a91598cfcdf300da3
+              name: 'Reachability of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.swsd.[{#CCU3.ISEID},unreach]'
+              delay: '0'
+              history: 14d
+              valuemap:
+                name: 'Simple status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[7]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 7c69d163358e4de5b5112e2cd575c56e
+              name: 'Gatherer "{#CCU3.NAME}"'
+              type: HTTP_AGENT
+              key: 'ccu3.gatherer.device.swsd.[{#CCU3.ISEID}]'
+              delay: 15s
+              history: 14d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: XML_TO_JSON
+                  parameters:
+                    - ''
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.state.device
+              timeout: 5s
+              url: 'https://192.168.20.202/addons/xmlapi/state.cgi?device_id={#CCU3.ISEID}'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device Gatherer'
+              trigger_prototypes:
+                -
+                  uuid: 59a5d74547eb4c66b628c64386c6b523
+                  expression: 'nodata(/template_homematic-ccu3-values/ccu3.gatherer.device.swsd.[{#CCU3.ISEID}],180,"strict")=1'
+                  name: 'No data received from "{#CCU3.NAME}" for over 3m'
+                  priority: WARNING
+          master_item:
+            key: 'ccu3-gatherer.sh[{HOST.CONN},"discover-devices"]'
+      valuemaps:
+        -
+          uuid: a267fefcca5c433cbc6cb1e588da18b2
+          name: 'Simple status'
+          mappings:
+            -
+              value: '0'
+              newvalue: Ok
+            -
+              value: '1'
+              newvalue: Problem
+            -
+              value: '2'
+              newvalue: Unknown
