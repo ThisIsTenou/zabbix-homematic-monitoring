@@ -1,3 +1,8 @@
+Currently supported devices:
+------
+* Homematic IP Water sensor (HmIP-SWD)
+* Homematic IP Smoke detector (HmIP-SWSD) (in developmemt)
+
 Requirements
 ------
 * Bash 4.x or higher
