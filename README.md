@@ -18,7 +18,7 @@ Installation
 4. Move the two scripts from the "[externalscripts](https://github.com/ThisIsTenou/zabbix-homematic-monitoring/tree/main/externalscripts)"-directory of this repository into the externalscripts-directory of your zabbix server. See [Zabbix External Checks](https://www.zabbix.com/documentation/current/manual/config/items/itemtypes/external) and [Zabbix server configuration](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_server) for further details.
 5. Make both scripts executable (`sudo chmod +x ccu3-gatherer.sh xml-to-json.py`) and owned by zabbix (`sudo chown zabbix:zabbix ccu3-gatherer.sh xml-to-json.py`).
 6. Import the Zabbix template into your Zabbix server, under Configuration -> Templates -> Import.
-7. All done! You can now assign the template to a CCU3-Host and let it do it's thing.
+7. All done! You can now assign the template to a CCU3-Host, set the "{$CCU3_ADDRESS}"-Macro, and let it do it's thing.
 
 xml-to-json.py
 ------
