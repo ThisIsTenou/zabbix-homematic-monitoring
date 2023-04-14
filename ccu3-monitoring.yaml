@@ -1,7 +1,7 @@
 zabbix_export:
-  version: '6.0'
-  date: '2022-05-09T19:04:46Z'
-  groups:
+  version: '6.2'
+  date: '2023-04-14T22:05:59Z'
+  template_groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
       name: Templates
@@ -31,6 +31,25 @@ zabbix_export:
           history: '0'
           trends: '0'
           value_type: TEXT
+        -
+          uuid: d29138df436041b0adb2b8e4be8dbb96
+          name: 'System Notifications'
+          type: HTTP_AGENT
+          key: ccu3.gatherer.systemNotifications
+          delay: 15s
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            -
+              type: XML_TO_JSON
+              parameters:
+                - ''
+            -
+              type: JSONPATH
+              parameters:
+                - $.systemNotification.notification
+          timeout: 5s
+          url: 'https://{$CCU3_ADDRESS}/addons/xmlapi/systemNotification.cgi'
       discovery_rules:
         -
           uuid: 0943127d84de4e9e999c494ddb540813
@@ -42,7 +61,7 @@ zabbix_export:
             conditions:
               -
                 macro: '{#CCU3.DEVICETYPE}'
-                value: HmIP-SMI
+                value: ^HmIP-SMI$
                 formulaid: A
           lifetime: 7d
           item_prototypes:
@@ -200,12 +219,6 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
-              trigger_prototypes:
-                -
-                  uuid: 4212f0ff254e4796afee43a96852f2cb
-                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.smi.[{#CCU3.ISEID},operatingvoltagestatus])<=2.5'
-                  name: 'Low battery on "{#CCU3.NAME}"'
-                  priority: WARNING
             -
               uuid: 232b91a7b57b44a2b2011f441c30782d
               name: 'Operating voltage of "{#CCU3.NAME}"'
@@ -368,6 +381,11 @@ zabbix_export:
               name: 'Battery status of "{#CCU3.NAME}" not ok'
               priority: WARNING
             -
+              uuid: 4212f0ff254e4796afee43a96852f2cb
+              expression: 'last(/template_homematic-ccu3-values/ccu3.device.smi.[{#CCU3.ISEID},operatingvoltage])<=2.5 or last(/template_homematic-ccu3-values/ccu3.device.smi.[{#CCU3.ISEID},lowbat])>0'
+              name: 'Low battery on "{#CCU3.NAME}"'
+              priority: WARNING
+            -
               uuid: 19352cdfa444426892a99da0a1add7a9
               expression: 'last(/template_homematic-ccu3-values/ccu3.device.smi.[{#CCU3.ISEID},motiondetectionstate])=1 and last(/template_homematic-ccu3-values/ccu3.device.spi.[{#CCU3.ISEID},motiondetectionactive])=0'
               name: 'Motion detected on "{#CCU3.NAME}"'
@@ -385,7 +403,7 @@ zabbix_export:
             conditions:
               -
                 macro: '{#CCU3.DEVICETYPE}'
-                value: HmIP-SPI
+                value: ^HmIP-SPI$
                 formulaid: A
           lifetime: 7d
           item_prototypes:
@@ -535,7 +553,9 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: dd680ba5fe57422a8d47934e750b9616
-                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.spi.[{#CCU3.ISEID},operatingvoltage])<=2.5'
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.device.spi.[{#CCU3.ISEID},operatingvoltage])<=2.4'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/template_homematic-ccu3-values/ccu3.device.spi.[{#CCU3.ISEID},operatingvoltage])>2.5'
                   name: 'Low battery on "{#CCU3.NAME}"'
                   priority: WARNING
             -
@@ -719,6 +739,45 @@ zabbix_export:
           master_item:
             key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
         -
+          uuid: 1fc409011c8848c4a025fd5584943c88
+          name: 'CCU3 STHD Discovery'
+          type: DEPENDENT
+          key: ccu3.discovery.devices.sthd
+          delay: '0'
+          filter:
+            conditions:
+              -
+                macro: '{#CCU3.DEVICETYPE}'
+                value: ^HmIP-STHD$
+                formulaid: A
+          lifetime: 7d
+          item_prototypes:
+            -
+              uuid: 74fa55d2128f417a94d032b9660fad04
+              name: 'Gatherer "{#CCU3.NAME}"'
+              type: HTTP_AGENT
+              key: 'ccu3.gatherer.device.sthd.[{#CCU3.ISEID}]'
+              history: 30d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: XML_TO_JSON
+                  parameters:
+                    - ''
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.state.device
+              timeout: 5s
+              url: 'https://{$CCU3_ADDRESS}/addons/xmlapi/state.cgi?device_id={#CCU3.ISEID}'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device Gatherer {#CCU3.NAME} ({#CCU3.ISEID})'
+          master_item:
+            key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
+        -
           uuid: 1b45f83c635f4c27a7188a0e47a99d33
           name: 'CCU3 SWD Discovery'
           type: DEPENDENT
@@ -728,7 +787,7 @@ zabbix_export:
             conditions:
               -
                 macro: '{#CCU3.DEVICETYPE}'
-                value: HmIP-SWD
+                value: ^HmIP-SWD$
                 formulaid: A
           lifetime: 7d
           item_prototypes:
@@ -1086,7 +1145,7 @@ zabbix_export:
             conditions:
               -
                 macro: '{#CCU3.DEVICETYPE}'
-                value: HmIP-SWSD
+                value: ^HmIP-SWSD$
                 formulaid: A
           lifetime: 7d
           item_prototypes:
