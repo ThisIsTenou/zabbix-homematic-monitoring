@@ -37,8 +37,9 @@ Installation
 
 Note:
 ------
-The necessity for curlccu3.sh, in comparison to using HTTP Agent for everything, is due to an unresolved bug which I'm working on identifying.
-Using the HTTP Agent checks for HmIP-Thermostats (STH/STHD/WTH-2) leads to an "Server returned invalid UTF-8 sequence" error in Zabbix. Any input on this issue would be much appreciated.
+The necessity for curlccu3.sh, in comparison to using HTTP Agent for everything, is due to the CCU3 encoding everything in windows-1252, whilst Zabbix only supports UTF-8.
+Using the HTTP Agent checks against, at least, HmIP-Thermostats (STH/STHD/WTH-2) leads to an "Server returned invalid UTF-8 sequence" error in Zabbix.
+Since it's neither simple to change the encoding on the CCU3 to UTF-8 nor add support in Zabbix for windows-1252, this workaround will persist.
 
 xml-to-json.py
 ------
