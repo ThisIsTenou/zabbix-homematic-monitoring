@@ -5,17 +5,17 @@ Currently supported devices:
 * Homematic IP Motion detector indoor (HmIP-SMI)
 * Homematic IP Presence detector (HmIP-SPI)
 * Homematic IP Temperature and humidity sensor w/ display (HmIP-STHD)
+* Homematic IP Temperature and humidity sensor w/o display (HmIP-STH)
+* Homematic IP Thermostat (HmIP-WTH-2)
 
 Devices that are work in progress:
 ------
 
 * Homematic IP Motion detector outdoor (HmIP-SMO / HmIP-SMO-A-2)
-* Homematic IP Temperature and humidity sensor w/o display (HmIP-STH)
 * Homematic IP Magnet sensor (HmIP-SWDM)
 * Homematic IP Door lock drive (HmIP-DLD)
 * Homematic IP CCU3 (HmIP-CCU3)
 * Homematic IP Access point (HmIP-HAP)
-* Homematic IP Thermostat (HmIP-WTH-2)
 
 
 Requirements
