@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.2'
-  date: '2023-04-14T22:05:59Z'
+  date: '2023-04-16T17:14:34Z'
   template_groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -28,7 +28,7 @@ zabbix_export:
           type: EXTERNAL
           key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
           delay: 1h
-          history: '0'
+          history: 1h
           trends: '0'
           value_type: TEXT
         -
@@ -44,16 +44,17 @@ zabbix_export:
               type: XML_TO_JSON
               parameters:
                 - ''
-            -
-              type: JSONPATH
-              parameters:
-                - $.systemNotification.notification
           timeout: 5s
           url: 'https://{$CCU3_ADDRESS}/addons/xmlapi/systemNotification.cgi'
+          triggers:
+            -
+              uuid: 485e536233414a088f7d256984d73a2d
+              expression: length(last(/template_homematic-ccu3-values/ccu3.gatherer.systemNotifications))<>27
+              name: 'System notifications present'
       discovery_rules:
         -
           uuid: 0943127d84de4e9e999c494ddb540813
-          name: 'CCU3 SMI Discovery'
+          name: 'CCU3 HmIP-SMI Discovery'
           type: DEPENDENT
           key: ccu3.discovery.devices.smi
           delay: '0'
@@ -240,6 +241,68 @@ zabbix_export:
                   tag: Application
                   value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
             -
+              uuid: a076bfa05b9c4db6b9eddc0e43573160
+              name: 'Pending config for "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.smi.[{#CCU3.ISEID},pendingconfig]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[0]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.smi.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 82a442e5ab244278b648de3311f0dd8b
+              name: 'Pending update for "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.device.smi.[{#CCU3.ISEID},pendingupdate]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[10]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'ccu3.gatherer.device.smi.[{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
               uuid: df2cada36e0c4cc88a0c96e2d2fb92c6
               name: 'Sabotage status of "{#CCU3.NAME}"'
               type: DEPENDENT
@@ -395,7 +458,7 @@ zabbix_export:
             key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
         -
           uuid: 8890be9f1a0d42aca662261705d125fa
-          name: 'CCU3 SPI Discovery'
+          name: 'CCU3 HmIP-SPI Discovery'
           type: DEPENDENT
           key: ccu3.discovery.devices.spi
           delay: '0'
@@ -740,24 +803,279 @@ zabbix_export:
             key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
         -
           uuid: 1fc409011c8848c4a025fd5584943c88
-          name: 'CCU3 STHD Discovery'
+          name: 'CCU3 HmIP-STH(D)/HmIP-WTH-2 Discovery'
           type: DEPENDENT
-          key: ccu3.discovery.devices.sthd
+          key: ccu3.discovery.devices.sth-sthd-wth2
           delay: '0'
           filter:
+            evaltype: OR
             conditions:
               -
                 macro: '{#CCU3.DEVICETYPE}'
                 value: ^HmIP-STHD$
                 formulaid: A
+              -
+                macro: '{#CCU3.DEVICETYPE}'
+                value: ^HmIP-STH$
+                formulaid: B
+              -
+                macro: '{#CCU3.DEVICETYPE}'
+                value: ^HmIP-WTH-2$
+                formulaid: C
           lifetime: 7d
           item_prototypes:
             -
+              uuid: 2c157aa272754443a5592c5025f41b08
+              name: 'Current temperature reading status "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},actualtempstatus]'
+              delay: '0'
+              history: 30d
+              trends: '0'
+              valuemap:
+                name: ENUM_STATUS
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[2]["@value"]'
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 1c7ccd1d6547417a83faaf598b030381
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},actualtempstatus])<>0'
+                  name: 'Invalid temperature reading on "{#CCU3.NAME}"'
+                  priority: WARNING
+            -
+              uuid: bbc2460534294df685b5ed74ee5f734e
+              name: 'Current temperature on "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},actualtemp]'
+              delay: '0'
+              history: 30d
+              value_type: FLOAT
+              units: C
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[1]["@value"]'
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 555ee839a13940df94d095e73fe173aa
+              name: 'Current humidity reading status "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},humiditystatus]'
+              delay: '0'
+              history: 30d
+              trends: '0'
+              valuemap:
+                name: ENUM_STATUS
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[12]["@value"]'
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 31fa5788ebe24e8b9ab1e4ac1a09c0c9
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},humiditystatus])<>0'
+                  name: 'Invalid humidity reading on "{#CCU3.NAME}"'
+                  priority: WARNING
+            -
+              uuid: f231396fbf1a425588635667e35199cc
+              name: 'Current humidity on "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},humidity]'
+              delay: '0'
+              history: 30d
+              units: '%rF'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[1].datapoint[11]["@value"]'
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+            -
+              uuid: 6114cfebba484bee91eb9a31dbfd9fcd
+              name: 'Battery status of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},lowbat]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[2]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 4a470943f75045bab6ebe838f571f3b7
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},lowbat])=1'
+                  name: 'Low battery on "{#CCU3.NAME}"'
+                  priority: WARNING
+            -
+              uuid: 6600c243756141b2bfeed47b9bc022d7
+              name: 'Pending config for "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},pendingconfig]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[0]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 745425c7fdc142e6937def5efc888027
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},pendingconfig])=1'
+                  name: 'Pending config for "{#CCU3.NAME}"'
+                  priority: INFO
+            -
+              uuid: d75039d2074440168fbc76d52f4aed31
+              name: 'Pending update for "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},pendingupdate]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[8]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 575d29f73f1146f7b8b2447f1c1c728b
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},pendingupdate])=1'
+                  name: 'Pending update for "{#CCU3.NAME}"'
+                  priority: INFO
+            -
+              uuid: b45ec9f49cc24cfe85c6215e626b0796
+              name: 'Reachability of "{#CCU3.NAME}"'
+              type: DEPENDENT
+              key: 'ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},unreach]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              valuemap:
+                name: BOOLEAN
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.channel[0].datapoint[7]["@value"]'
+                -
+                  type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (value == "false") {
+                      return 0 ;
+                      } else if (value == "true") {
+                      return 1 ;
+                      } else {
+                      return 2 ;
+                      }
+              master_item:
+                key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'CCU3 Device {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 679cb40a692c43fdab0217d33fe322e8
+                  expression: 'last(/template_homematic-ccu3-values/ccu3.discovery.devices.sth-sthd-wth2.[{#CCU3.ISEID},unreach])=1'
+                  name: 'Device "{#CCU3.NAME}" became unreachable'
+                  priority: AVERAGE
+            -
               uuid: 74fa55d2128f417a94d032b9660fad04
               name: 'Gatherer "{#CCU3.NAME}"'
-              type: HTTP_AGENT
-              key: 'ccu3.gatherer.device.sthd.[{#CCU3.ISEID}]'
-              history: 30d
+              type: EXTERNAL
+              key: 'curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}]'
+              delay: 15s
+              history: 14d
               trends: '0'
               value_type: TEXT
               preprocessing:
@@ -769,17 +1087,21 @@ zabbix_export:
                   type: JSONPATH
                   parameters:
                     - $.state.device
-              timeout: 5s
-              url: 'https://{$CCU3_ADDRESS}/addons/xmlapi/state.cgi?device_id={#CCU3.ISEID}'
               tags:
                 -
                   tag: Application
                   value: 'CCU3 Device Gatherer {#CCU3.NAME} ({#CCU3.ISEID})'
+              trigger_prototypes:
+                -
+                  uuid: 5ca07085b70244f090361e955c390ac7
+                  expression: 'nodata(/template_homematic-ccu3-values/curlccu3.sh[{$CCU3_ADDRESS},{#CCU3.ISEID}],180,"strict")=1'
+                  name: 'No data received from "{#CCU3.NAME}" for over 3m'
+                  priority: WARNING
           master_item:
             key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
         -
           uuid: 1b45f83c635f4c27a7188a0e47a99d33
-          name: 'CCU3 SWD Discovery'
+          name: 'CCU3 HmIP-SWD Discovery'
           type: DEPENDENT
           key: ccu3.discovery.devices.swd
           delay: '0'
@@ -1137,7 +1459,7 @@ zabbix_export:
             key: 'ccu3-gatherer.sh[{$CCU3_ADDRESS}]'
         -
           uuid: d2753416641447298689176e0af80471
-          name: 'CCU3 SWSD Discovery'
+          name: 'CCU3 HmIP-SWSD Discovery'
           type: DEPENDENT
           key: ccu3.discovery.devices.swsd
           delay: '0'
@@ -1400,19 +1722,6 @@ zabbix_export:
               value: '1'
               newvalue: 'true'
         -
-          uuid: 16cefebc2a96474f921e69e94bd06d09
-          name: CURRENT_ILLUMINATION_STATUS
-          mappings:
-            -
-              value: '0'
-              newvalue: Normal
-            -
-              value: '1'
-              newvalue: Unknown
-            -
-              value: '2'
-              newvalue: Overflow
-        -
           uuid: 55d674fbb3054bcba89f00f03237ffd9
           name: ENUM_STATUS
           mappings:
@@ -1425,6 +1734,9 @@ zabbix_export:
             -
               value: '2'
               newvalue: Overflow
+            -
+              value: '3'
+              newvalue: Underflow
         -
           uuid: 746ffbdd106f49689a43524a84de0e9b
           name: ERROR_CODE
